@@ -5,6 +5,35 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { FaCreditCard, FaMoneyBillWave, FaShieldAlt } from 'react-icons/fa';
 
+// Indian States and major cities
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu', 'Delhi', 'Jammu and Kashmir',
+  'Ladakh', 'Lakshadweep', 'Puducherry'
+];
+
+const MAJOR_CITIES = {
+  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Aurangabad', 'Thane', 'Solapur', 'Other'],
+  'Karnataka': ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubli', 'Belgaum', 'Other'],
+  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Salem', 'Tirunelveli', 'Other'],
+  'Delhi': ['New Delhi', 'North Delhi', 'South Delhi', 'East Delhi', 'West Delhi', 'Central Delhi', 'Other'],
+  'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Asansol', 'Siliguri', 'Other'],
+  'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar', 'Other'],
+  'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Khammam', 'Karimnagar', 'Other'],
+  'Rajasthan': ['Jaipur', 'Jodhpur', 'Kota', 'Bikaner', 'Udaipur', 'Ajmer', 'Other'],
+  'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Ghaziabad', 'Agra', 'Varanasi', 'Meerut', 'Allahabad', 'Other'],
+  'Haryana': ['Gurugram', 'Faridabad', 'Panipat', 'Ambala', 'Hisar', 'Rohtak', 'Other'],
+  'Punjab': ['Ludhiana', 'Amritsar', 'Jalandhar', 'Patiala', 'Bathinda', 'Other'],
+  'Kerala': ['Thiruvananthapuram', 'Kochi', 'Kozhikode', 'Thrissur', 'Kannur', 'Other'],
+  'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Nellore', 'Kurnool', 'Other']
+};
+
 const CheckoutWithPayment = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -19,6 +48,8 @@ const CheckoutWithPayment = () => {
     shipping_city: '',
     shipping_state: '',
     shipping_pincode: '',
+    shipping_phone: user?.phone || '',
+    shipping_country: 'India',
 
     // Billing Address
     billing_address_line1: '',
@@ -26,12 +57,25 @@ const CheckoutWithPayment = () => {
     billing_city: '',
     billing_state: '',
     billing_pincode: '',
+    billing_phone: user?.phone || '',
+    billing_country: 'India',
 
     // Same as shipping checkbox
     billing_same_as_shipping: true,
 
     payment_method: 'online'
   });
+
+  const [availableCities, setAvailableCities] = useState([]);
+
+  // Update available cities when state changes
+  useEffect(() => {
+    if (formData.shipping_state && MAJOR_CITIES[formData.shipping_state]) {
+      setAvailableCities(MAJOR_CITIES[formData.shipping_state]);
+    } else {
+      setAvailableCities([]);
+    }
+  }, [formData.shipping_state]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -75,6 +119,11 @@ const CheckoutWithPayment = () => {
   // Validate pincode (6 digits)
   const validatePincode = (pincode) => {
     return /^\d{6}$/.test(pincode);
+  };
+
+  // Validate Indian phone number (10 digits, starts with 6-9)
+  const validatePhone = (phone) => {
+    return /^[6-9]\d{9}$/.test(phone);
   };
 
   const handleRazorpayPayment = async (orderId) => {
@@ -141,13 +190,18 @@ const CheckoutWithPayment = () => {
 
     // Validate shipping address
     if (!formData.shipping_address_line1 || !formData.shipping_city ||
-        !formData.shipping_state || !formData.shipping_pincode) {
-      alert('Please fill all shipping address fields');
+        !formData.shipping_state || !formData.shipping_pincode || !formData.shipping_phone) {
+      alert('Please fill all shipping address fields including phone number');
       return;
     }
 
     if (!validatePincode(formData.shipping_pincode)) {
-      alert('Shipping pincode must be 6 digits');
+      alert('Shipping pincode must be exactly 6 digits');
+      return;
+    }
+
+    if (!validatePhone(formData.shipping_phone)) {
+      alert('Shipping phone number must be exactly 10 digits and start with 6, 7, 8, or 9');
       return;
     }
 
@@ -168,12 +222,12 @@ const CheckoutWithPayment = () => {
     setLoading(true);
 
     try {
-      // Construct full addresses
-      const shippingAddress = `${formData.shipping_address_line1}, ${formData.shipping_address_line2 ? formData.shipping_address_line2 + ', ' : ''}${formData.shipping_city}, ${formData.shipping_state} - ${formData.shipping_pincode}`;
+      // Construct full addresses with phone
+      const shippingAddress = `${formData.shipping_address_line1}, ${formData.shipping_address_line2 ? formData.shipping_address_line2 + ', ' : ''}${formData.shipping_city}, ${formData.shipping_state}, ${formData.shipping_country} - ${formData.shipping_pincode}, Phone: ${formData.shipping_phone}`;
 
       const billingAddress = formData.billing_same_as_shipping
         ? shippingAddress
-        : `${formData.billing_address_line1}, ${formData.billing_address_line2 ? formData.billing_address_line2 + ', ' : ''}${formData.billing_city}, ${formData.billing_state} - ${formData.billing_pincode}`;
+        : `${formData.billing_address_line1}, ${formData.billing_address_line2 ? formData.billing_address_line2 + ', ' : ''}${formData.billing_city}, ${formData.billing_state}, ${formData.billing_country} - ${formData.billing_pincode}, Phone: ${formData.billing_phone || formData.shipping_phone}`;
 
       const orderData = {
         items: cartItems.map(item => ({
@@ -276,46 +330,96 @@ const CheckoutWithPayment = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">City <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      name="shipping_city"
-                      value={formData.shipping_city}
+                    <label className="block text-sm font-medium mb-2">Country <span className="text-red-500">*</span></label>
+                    <select
+                      name="shipping_country"
+                      value={formData.shipping_country}
                       onChange={handleChange}
-                      placeholder="City"
                       className="input-field"
                       required
-                    />
+                    >
+                      <option value="India">India</option>
+                      <option value="Other">Other</option>
+                    </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">State <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
+                    <select
                       name="shipping_state"
                       value={formData.shipping_state}
                       onChange={handleChange}
-                      placeholder="State"
+                      className="input-field"
+                      required
+                    >
+                      <option value="">Select State</option>
+                      {INDIAN_STATES.map((state) => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">City <span className="text-red-500">*</span></label>
+                    {availableCities.length > 0 ? (
+                      <select
+                        name="shipping_city"
+                        value={formData.shipping_city}
+                        onChange={handleChange}
+                        className="input-field"
+                        required
+                      >
+                        <option value="">Select City</option>
+                        {availableCities.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        name="shipping_city"
+                        value={formData.shipping_city}
+                        onChange={handleChange}
+                        placeholder="Enter City"
+                        className="input-field"
+                        required
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Pincode <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      name="shipping_pincode"
+                      value={formData.shipping_pincode}
+                      onChange={handleChange}
+                      placeholder="6-digit pincode"
+                      maxLength="6"
+                      pattern="\d{6}"
                       className="input-field"
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">Enter 6-digit pincode</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Pincode <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium mb-2">Phone Number <span className="text-red-500">*</span></label>
                   <input
-                    type="text"
-                    name="shipping_pincode"
-                    value={formData.shipping_pincode}
+                    type="tel"
+                    name="shipping_phone"
+                    value={formData.shipping_phone}
                     onChange={handleChange}
-                    placeholder="6-digit pincode"
-                    maxLength="6"
-                    pattern="\d{6}"
+                    placeholder="10-digit mobile number"
+                    maxLength="10"
+                    pattern="[6-9]\d{9}"
                     className="input-field"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">Enter 6-digit pincode</p>
+                  <p className="text-xs text-gray-500 mt-1">Enter 10-digit mobile number starting with 6, 7, 8, or 9</p>
                 </div>
               </div>
             </div>
