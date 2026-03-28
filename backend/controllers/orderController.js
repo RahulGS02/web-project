@@ -20,8 +20,10 @@ exports.createOrder = async (req, res) => {
     const orderItems = [];
 
     // Validate items and calculate total
+    console.log('📦 Processing order items:', JSON.stringify(items, null, 2));
     for (const item of items) {
       const medicine = medicinesDB.findById(item.medicine_id, 'medicine_id');
+      console.log(`🔍 Found medicine for ${item.medicine_id}:`, medicine ? medicine.name : 'NOT FOUND');
 
       if (!medicine) {
         return res.status(404).json({
@@ -40,15 +42,18 @@ exports.createOrder = async (req, res) => {
       const itemTotal = medicine.price * item.quantity;
       total_amount += itemTotal;
 
-      orderItems.push({
+      const orderItem = {
         medicine_id: item.medicine_id,
         medicine_name: medicine.name,
         category: medicine.category,
         quantity: item.quantity,
         price: medicine.price,
         subtotal: itemTotal
-      });
+      };
+      console.log(`✅ Adding to order: ${orderItem.medicine_name} x ${orderItem.quantity}`);
+      orderItems.push(orderItem);
     }
+    console.log('📦 Total order items prepared:', orderItems.length);
 
     // Calculate financial breakdown with GST and platform fee
     const financials = calculateOrderFinancials(orderItems);
@@ -76,6 +81,7 @@ exports.createOrder = async (req, res) => {
       ordersDB.create(newOrder);
 
       // Create order items but DON'T reduce stock yet
+      console.log('💾 Saving order items to database for online payment...');
       for (const item of orderItems) {
         const orderItem = {
           order_item_id: uuidv4(),
@@ -83,8 +89,15 @@ exports.createOrder = async (req, res) => {
           ...item,
           created_at: new Date().toISOString()
         };
+        console.log(`💾 Saving item:`, {
+          id: orderItem.order_item_id,
+          order: order_id.substring(0, 8),
+          medicine: orderItem.medicine_name,
+          qty: orderItem.quantity
+        });
         orderItemsDB.create(orderItem);
       }
+      console.log('✅ All items saved to database');
 
       // Return order for payment processing
       return res.status(201).json({
@@ -101,6 +114,7 @@ exports.createOrder = async (req, res) => {
     ordersDB.create(newOrder);
 
     // Create order items
+    console.log('💾 Saving order items to database for COD...');
     for (const item of orderItems) {
       const orderItem = {
         order_item_id: uuidv4(),
@@ -108,6 +122,12 @@ exports.createOrder = async (req, res) => {
         ...item,
         created_at: new Date().toISOString()
       };
+      console.log(`💾 Saving COD item:`, {
+        id: orderItem.order_item_id,
+        order: order_id.substring(0, 8),
+        medicine: orderItem.medicine_name,
+        qty: orderItem.quantity
+      });
       orderItemsDB.create(orderItem);
 
       // Update medicine stock for COD
@@ -151,6 +171,8 @@ exports.getOrders = async (req, res) => {
     // Attach order items to each order
     const ordersWithItems = orders.map(order => {
       const items = orderItemsDB.findAll({ order_id: order.order_id });
+      console.log(`📦 Order ${order.order_id.substring(0, 8)}: Found ${items.length} items:`,
+        items.map(i => `${i.medicine_name} x${i.quantity}`).join(', '));
       return { ...order, items };
     });
 
