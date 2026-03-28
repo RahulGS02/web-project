@@ -1,0 +1,48 @@
+services:
+  # Backend Service
+  - type: web
+    name: rajini-pharma-backend
+    env: node
+    region: singapore
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: EXCEL_DATA_PATH
+        value: ./data
+      - key: UPLOAD_PATH
+        value: ./uploads
+      - key: GST_RATE
+        value: 0.12
+      - key: PLATFORM_FEE_RATE
+        value: 0.01
+      - key: INVOICE_PATH
+        value: ./generated_invoices
+      - key: WHATSAPP_ENABLED
+        value: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+  # Frontend Service
+  - type: web
+    name: rajini-pharma-frontend
+    env: static
+    region: singapore
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: rajini-pharma-backend
+          envVarKey: RENDER_EXTERNAL_URL
+

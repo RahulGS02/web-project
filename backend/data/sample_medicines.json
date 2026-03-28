@@ -1,0 +1,48 @@
+[
+  {
+    "name": "Paracetamol 500mg",
+    "category": "Pain Relief",
+    "description": "Effective pain reliever and fever reducer",
+    "price": 25,
+    "stock_quantity": 500,
+    "requires_prescription": false,
+    "expiry_date": "2026-12-31"
+  },
+  {
+    "name": "Amoxicillin 250mg",
+    "category": "Antibiotics",
+    "description": "Broad-spectrum antibiotic",
+    "price": 120,
+    "stock_quantity": 200,
+    "requires_prescription": true,
+    "expiry_date": "2026-06-30"
+  },
+  {
+    "name": "Cetirizine 10mg",
+    "category": "Allergy",
+    "description": "Antihistamine for allergy relief",
+    "price": 45,
+    "stock_quantity": 300,
+    "requires_prescription": false,
+    "expiry_date": "2026-09-30"
+  },
+  {
+    "name": "Omeprazole 20mg",
+    "category": "Gastric",
+    "description": "Reduces stomach acid production",
+    "price": 85,
+    "stock_quantity": 150,
+    "requires_prescription": false,
+    "expiry_date": "2026-08-31"
+  },
+  {
+    "name": "Metformin 500mg",
+    "category": "Diabetes",
+    "description": "Blood sugar control medication",
+    "price": 95,
+    "stock_quantity": 180,
+    "requires_prescription": true,
+    "expiry_date": "2026-11-30"
+  }
+]
+
