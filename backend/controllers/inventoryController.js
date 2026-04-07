@@ -158,3 +158,100 @@ exports.exportExcel = async (req, res) => {
   }
 };
 
+// @desc    Fix medicine IDs (one-time migration)
+// @route   POST /api/inventory/fix-medicine-ids
+// @access  Private/Admin
+exports.fixMedicineIds = async (req, res) => {
+  try {
+    const medicines = medicinesDB.readData();
+    let fixedCount = 0;
+    const fixes = [];
+
+    medicines.forEach((medicine) => {
+      if (!medicine.medicine_id || medicine.medicine_id === 'undefined' || medicine.medicine_id === '') {
+        const newId = uuidv4();
+        medicine.medicine_id = newId;
+        fixedCount++;
+        fixes.push({
+          name: medicine.name,
+          newId: newId
+        });
+      }
+    });
+
+    if (fixedCount > 0) {
+      medicinesDB.writeData(medicines);
+      res.status(200).json({
+        success: true,
+        message: `Fixed ${fixedCount} medicines`,
+        data: {
+          fixedCount,
+          fixes
+        }
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'All medicines already have valid IDs',
+        data: {
+          fixedCount: 0
+        }
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+// @desc    Fix medicine IDs (one-time migration)
+// @route   POST /api/inventory/fix-medicine-ids
+// @access  Private/Admin
+exports.fixMedicineIds = async (req, res) => {
+  try {
+    const medicines = medicinesDB.readData();
+    let fixedCount = 0;
+    const fixes = [];
+
+    medicines.forEach((medicine) => {
+      if (!medicine.medicine_id || medicine.medicine_id === 'undefined' || medicine.medicine_id === '') {
+        const newId = uuidv4();
+        medicine.medicine_id = newId;
+        fixedCount++;
+        fixes.push({
+          name: medicine.name,
+          newId: newId
+        });
+      }
+    });
+
+    if (fixedCount > 0) {
+      medicinesDB.writeData(medicines);
+      res.status(200).json({
+        success: true,
+        message: `Fixed ${fixedCount} medicines`,
+        data: {
+          fixedCount,
+          fixes
+        }
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'All medicines already have valid IDs',
+        data: {
+          fixedCount: 0
+        }
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
