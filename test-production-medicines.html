@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Production Medicines</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #1976D2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1565C0;
+        }
+        .error { color: red; }
+        .success { color: green; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #output {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Production Medicines Debugger</h1>
+    
+    <div class="card">
+        <h2>Step 1: Check Medicines</h2>
+        <p>This will fetch medicines from production and show if they have medicine_id</p>
+        <button onclick="checkMedicines()">Check Production Medicines</button>
+    </div>
+
+    <div class="card">
+        <h2>Step 2: Fix Medicines (Admin Only)</h2>
+        <p>This will add medicine_id to all medicines missing them</p>
+        <label>Admin Token (from localStorage): </label>
+        <input type="text" id="token" placeholder="Paste your token here" style="width: 500px; padding: 5px;">
+        <br><br>
+        <button onclick="fixMedicines()">Fix Medicine IDs</button>
+    </div>
+
+    <div class="card">
+        <h2>Output:</h2>
+        <div id="output">Results will appear here...</div>
+    </div>
+
+    <script>
+        const API_URL = 'https://web-project-lr9c.onrender.com';
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            output.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        async function checkMedicines() {
+            document.getElementById('output').innerHTML = '';
+            log('🔍 Fetching medicines from production...', 'info');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/medicines`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Found ${data.data.length} medicines\n`, 'success');
+                    
+                    let table = '<table><tr><th>#</th><th>Name</th><th>Price</th><th>Medicine ID</th><th>Status</th></tr>';
+                    
+                    let validCount = 0;
+                    let invalidCount = 0;
+                    
+                    data.data.forEach((med, idx) => {
+                        const hasValidId = med.medicine_id && med.medicine_id !== 'undefined' && med.medicine_id !== '';
+                        const status = hasValidId ? '✅ Valid' : '❌ Missing';
+                        const idDisplay = hasValidId ? med.medicine_id.substring(0, 13) + '...' : 'MISSING';
+                        
+                        if (hasValidId) validCount++;
+                        else invalidCount++;
+                        
+                        table += `<tr>
+                            <td>${idx + 1}</td>
+                            <td>${med.name}</td>
+                            <td>₹${med.price}</td>
+                            <td>${idDisplay}</td>
+                            <td>${status}</td>
+                        </tr>`;
+                    });
+                    
+                    table += '</table>';
+                    
+                    document.getElementById('output').innerHTML += table;
+                    
+                    log(`\n📊 Summary:`, 'info');
+                    log(`   Total: ${data.data.length}`, 'info');
+                    log(`   ✅ Valid IDs: ${validCount}`, 'success');
+                    log(`   ❌ Missing IDs: ${invalidCount}`, invalidCount > 0 ? 'error' : 'success');
+                    
+                    if (invalidCount > 0) {
+                        log(`\n⚠️ WARNING: ${invalidCount} medicines are missing IDs!`, 'error');
+                        log(`   This will cause cart and order issues!`, 'error');
+                        log(`   Use Step 2 to fix them.`, 'info');
+                    } else {
+                        log(`\n✅ All medicines have valid IDs!`, 'success');
+                        log(`   Cart should work correctly now.`, 'success');
+                    }
+                } else {
+                    log(`❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fixMedicines() {
+            const token = document.getElementById('token').value.trim();
+            
+            if (!token) {
+                alert('Please enter your admin token!\n\nTo get it:\n1. Go to your website\n2. Open browser console (F12)\n3. Type: localStorage.getItem("token")\n4. Copy the value and paste here');
+                return;
+            }
+            
+            document.getElementById('output').innerHTML = '';
+            log('🔧 Fixing medicine IDs...', 'info');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/inventory/fix-medicine-ids`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ SUCCESS! ${data.message}`, 'success');
+                    
+                    if (data.data.fixes && data.data.fixes.length > 0) {
+                        log(`\nFixed medicines:`, 'success');
+                        data.data.fixes.forEach((fix, idx) => {
+                            log(`  ${idx + 1}. ${fix.name} → ${fix.newId.substring(0, 13)}...`, 'success');
+                        });
+                    }
+                    
+                    log(`\n🎉 Database has been fixed!`, 'success');
+                    log(`\nNext steps:`, 'info');
+                    log(`1. Refresh your website`, 'info');
+                    log(`2. Clear your cart`, 'info');
+                    log(`3. Try adding multiple different items`, 'info');
+                    log(`4. Place an order`, 'info');
+                    log(`5. Check if all items appear correctly`, 'info');
+                } else {
+                    log(`❌ Error: ${data.message}`, 'error');
+                    
+                    if (response.status === 401) {
+                        log(`\n⚠️ Authentication failed. Make sure:`, 'error');
+                        log(`   1. You're logged in as admin`, 'error');
+                        log(`   2. Token is correct and not expired`, 'error');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Network Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-fill token if available
+        window.onload = function() {
+            log('Ready! Click "Check Production Medicines" to start.', 'info');
+        };
+    </script>
+</body>
+</html>

@@ -21,17 +21,31 @@ export const CartProvider = ({ children }) => {
   }, [cartItems]);
 
   const addToCart = (medicine, quantity = 1) => {
+    console.log('🛒 Adding to cart:', {
+      name: medicine.name,
+      medicine_id: medicine.medicine_id,
+      quantity: quantity
+    });
+
     setCartItems(prevItems => {
+      console.log('📦 Current cart items:', prevItems.map(i => ({
+        name: i.name,
+        id: i.medicine_id,
+        qty: i.quantity
+      })));
+
       const existingItem = prevItems.find(item => item.medicine_id === medicine.medicine_id);
-      
+
       if (existingItem) {
+        console.log('✅ Item already in cart, updating quantity');
         return prevItems.map(item =>
           item.medicine_id === medicine.medicine_id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      
+
+      console.log('➕ Adding new item to cart');
       return [...prevItems, { ...medicine, quantity }];
     });
   };
