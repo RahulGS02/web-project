@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { 
-  FaEdit, FaHistory, FaComments, FaUserCircle, 
-  FaEnvelope, FaClock, FaCheckCircle 
+import {
+  FaEdit, FaHistory, FaComments, FaUserCircle,
+  FaEnvelope, FaClock, FaCheckCircle
 } from 'react-icons/fa';
-import NegotiationChat from '../../../components/NegotiationChat';
+import NegotiationChat from '../../components/NegotiationChat';
 
 const AdminQuoteDetail = () => {
   const { orderId } = useParams();
