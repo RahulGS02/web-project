@@ -16,6 +16,7 @@ const analyticsRoutes = require('./routes/analytics');
 const paymentRoutes = require('./routes/payment');
 const invoiceRoutes = require('./routes/invoice');
 const notificationRoutes = require('./routes/notifications');
+const quoteRoutes = require('./routes/quotes');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/invoice', invoiceRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/quotes', quoteRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

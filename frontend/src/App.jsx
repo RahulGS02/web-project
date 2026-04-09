@@ -14,6 +14,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Orders from './pages/Orders';
 import PaymentSuccess from './pages/PaymentSuccess';
+import QuoteRequestCart from './pages/QuoteRequestCart';
+import MyQuotes from './pages/MyQuotes';
+import QuoteDetail from './pages/QuoteDetail';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
@@ -50,7 +53,7 @@ function App() {
             {/* Public Routes with Layout */}
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/medicines" element={<Layout><Medicines /></Layout>} />
-            <Route path="/cart" element={<Layout><Cart /></Layout>} />
+            <Route path="/cart" element={<Layout><QuoteRequestCart /></Layout>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
@@ -76,6 +79,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout><PaymentSuccess /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-quotes"
+              element={
+                <ProtectedRoute>
+                  <Layout><MyQuotes /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quote/:orderId"
+              element={
+                <ProtectedRoute>
+                  <Layout><QuoteDetail /></Layout>
                 </ProtectedRoute>
               }
             />

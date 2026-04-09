@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { FaShoppingCart, FaUser, FaSignOutAlt, FaHome, FaPills } from 'react-icons/fa';
+import { FaShoppingCart, FaUser, FaSignOutAlt, FaHome, FaPills, FaQuoteLeft } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 
 const Header = () => {
@@ -38,9 +38,15 @@ const Header = () => {
               <span>Medicines</span>
             </Link>
             {isAuthenticated && (
-              <Link to="/orders" className="text-gray-700 hover:text-primary-600 transition">
-                My Orders
-              </Link>
+              <>
+                <Link to="/my-quotes" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition">
+                  <FaQuoteLeft />
+                  <span>My Quotes</span>
+                </Link>
+                <Link to="/orders" className="text-gray-700 hover:text-primary-600 transition">
+                  My Orders
+                </Link>
+              </>
             )}
             {isAdmin && (
               <Link to="/admin" className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 transition font-semibold">

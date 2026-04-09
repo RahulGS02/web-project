@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../context/CartContext';
-import { FaSearch, FaShoppingCart, FaPrescription } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaPrescription, FaQuoteLeft } from 'react-icons/fa';
 import QuantityModal from '../components/QuantityModal';
+
+// Toggle between quote mode and regular mode
+const QUOTE_MODE = true; // Set to true to enable quote-based system
 
 const Medicines = () => {
   const [medicines, setMedicines] = useState([]);
@@ -64,7 +67,26 @@ const Medicines = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Browse Medicines</h1>
+      <h1 className="text-3xl font-bold mb-4">Browse Medicines</h1>
+      <p className="text-gray-600 mb-6">
+        {QUOTE_MODE ? 'Add medicines and request a quote from admin' : 'Find the medicines you need'}
+      </p>
+
+      {/* Quote Mode Banner */}
+      {QUOTE_MODE && (
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+          <div className="flex items-start">
+            <FaQuoteLeft className="text-blue-500 mt-1 mr-3" />
+            <div>
+              <h3 className="text-blue-800 font-semibold mb-1">Quote-Based Pricing</h3>
+              <p className="text-blue-700 text-sm">
+                Add medicines to your cart and submit a quote request. Our admin will review your requirements
+                and provide the best prices based on current market rates within 24 hours.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search and Filter */}
       <div className="mb-8 space-y-4">
@@ -123,7 +145,14 @@ const Medicines = () => {
 
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold text-primary-600">₹{medicine.price}</span>
+                  {QUOTE_MODE ? (
+                    <div className="flex items-center space-x-2 text-blue-600">
+                      <FaQuoteLeft />
+                      <span className="font-semibold">Price on Request</span>
+                    </div>
+                  ) : (
+                    <span className="text-2xl font-bold text-primary-600">₹{medicine.price}</span>
+                  )}
                   {medicine.requires_prescription && (
                     <span className="badge-warning text-xs flex items-center gap-1">
                       <FaPrescription /> Rx
@@ -146,8 +175,17 @@ const Medicines = () => {
                     : 'btn-primary'
                 }`}
               >
-                <FaShoppingCart />
-                <span>{medicine.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+                {QUOTE_MODE ? (
+                  <>
+                    <FaQuoteLeft />
+                    <span>{medicine.stock_quantity === 0 ? 'Out of Stock' : 'Add to Quote Request'}</span>
+                  </>
+                ) : (
+                  <>
+                    <FaShoppingCart />
+                    <span>{medicine.stock_quantity === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+                  </>
+                )}
               </button>
             </div>
           ))}

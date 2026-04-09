@@ -7,6 +7,8 @@ const ordersDB = new ExcelHandler('orders.xlsx');
 const orderItemsDB = new ExcelHandler('order_items.xlsx');
 const prescriptionsDB = new ExcelHandler('prescriptions.xlsx');
 const paymentsDB = new ExcelHandler('payments.xlsx');
+const quoteHistoryDB = new ExcelHandler('quote_history.xlsx');
+const orderNegotiationsDB = new ExcelHandler('order_negotiations.xlsx');
 
 module.exports = {
   medicinesDB,
@@ -14,6 +16,8 @@ module.exports = {
   ordersDB,
   orderItemsDB,
   prescriptionsDB,
-  paymentsDB
+  paymentsDB,
+  quoteHistoryDB,
+  orderNegotiationsDB
 };
 
