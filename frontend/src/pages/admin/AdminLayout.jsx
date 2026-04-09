@@ -1,12 +1,13 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { MdDashboard, MdInventory, MdShoppingCart } from 'react-icons/md';
-import { FaHome, FaMoneyBillWave } from 'react-icons/fa';
+import { FaHome, FaMoneyBillWave, FaQuoteLeft } from 'react-icons/fa';
 
 const AdminLayout = () => {
   const location = useLocation();
 
   const menuItems = [
     { path: '/admin', icon: <MdDashboard />, label: 'Dashboard' },
+    { path: '/admin/quote-requests', icon: <FaQuoteLeft />, label: 'Quote Requests', badge: true },
     { path: '/admin/inventory', icon: <MdInventory />, label: 'Inventory' },
     { path: '/admin/orders', icon: <MdShoppingCart />, label: 'Orders' },
     { path: '/admin/finance', icon: <FaMoneyBillWave />, label: 'Finance' }

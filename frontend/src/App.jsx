@@ -24,6 +24,9 @@ import Dashboard from './pages/admin/Dashboard';
 import Inventory from './pages/admin/Inventory';
 import AdminOrders from './pages/admin/AdminOrders';
 import FinanceDashboard from './pages/admin/FinanceDashboard';
+import AdminQuoteRequests from './pages/admin/AdminQuoteRequests';
+import SetQuotePrices from './pages/admin/SetQuotePrices';
+import AdminQuoteDetail from './pages/admin/AdminQuoteDetail';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -121,6 +124,9 @@ function App() {
               <Route path="inventory" element={<Inventory />} />
               <Route path="orders" element={<AdminOrders />} />
               <Route path="finance" element={<FinanceDashboard />} />
+              <Route path="quote-requests" element={<AdminQuoteRequests />} />
+              <Route path="quote/:orderId" element={<AdminQuoteDetail />} />
+              <Route path="quote/:orderId/set-prices" element={<SetQuotePrices />} />
             </Route>
 
             {/* 404 */}

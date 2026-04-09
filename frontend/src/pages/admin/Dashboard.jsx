@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaPills, FaShoppingCart, FaExclamationTriangle, FaMoneyBillWave, FaUsers } from 'react-icons/fa';
+import { FaPills, FaShoppingCart, FaExclamationTriangle, FaMoneyBillWave, FaUsers, FaQuoteLeft } from 'react-icons/fa';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [quoteStats, setQuoteStats] = useState({ pending: 0, modified: 0 });
 
   useEffect(() => {
     fetchAnalytics();
+    fetchQuoteStats();
   }, []);
 
   const fetchAnalytics = async () => {
@@ -18,6 +22,21 @@ const Dashboard = () => {
       console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchQuoteStats = async () => {
+    try {
+      const response = await axios.get('/api/quotes/requests');
+      if (response.data.success) {
+        const quotes = response.data.data;
+        setQuoteStats({
+          pending: quotes.filter(q => q.quote_status === 'QUOTE_REQUESTED').length,
+          modified: quotes.filter(q => q.quote_status === 'QUOTE_MODIFIED').length
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching quote stats:', error);
     }
   };
 
@@ -79,6 +98,33 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+
+      {/* Quote Alerts */}
+      {(quoteStats.pending > 0 || quoteStats.modified > 0) && (
+        <div
+          onClick={() => navigate('/admin/quote-requests')}
+          className="card p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 cursor-pointer hover:shadow-lg transition-shadow"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-yellow-500 text-white p-4 rounded-lg">
+                <FaQuoteLeft className="text-3xl" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {quoteStats.pending + quoteStats.modified} Quote Requests Need Attention
+                </h3>
+                <p className="text-gray-700">
+                  {quoteStats.pending} pending • {quoteStats.modified} modified
+                </p>
+              </div>
+            </div>
+            <button className="btn-primary">
+              Review Quotes →
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
