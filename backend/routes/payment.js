@@ -9,12 +9,14 @@ const {
   createOrder,
   verifyPayment,
   getPaymentStatus,
-  getAllPayments
+  getAllPayments,
+  processCODPayment
 } = require('../controllers/paymentController');
 
 // Protected routes (require authentication)
 router.post('/create-order', protect, createOrder);
 router.post('/verify', protect, verifyPayment);
+router.post('/process', protect, processCODPayment);
 router.get('/status/:orderId', protect, getPaymentStatus);
 
 // Admin only routes

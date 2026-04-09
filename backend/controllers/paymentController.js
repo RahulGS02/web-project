@@ -283,6 +283,140 @@ exports.getPaymentStatus = async (req, res) => {
 };
 
 /**
+ * Process COD payment
+ * POST /api/payment/process
+ */
+exports.processCODPayment = async (req, res) => {
+  try {
+    const { orderId, paymentMethod } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order ID is required'
+      });
+    }
+
+    // Get order details
+    const order = await ordersDB.findById(orderId, 'order_id');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Check if order belongs to user
+    if (order.user_id !== req.user.user_id && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access this order'
+      });
+    }
+
+    // Check if order is already paid
+    if (order.payment_status === 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order is already paid'
+      });
+    }
+
+    // Update order status for COD
+    await ordersDB.update(orderId, {
+      payment_status: 'pending', // COD is pending until delivery
+      payment_method: paymentMethod || 'cod',
+      status: 'confirmed', // Order is confirmed, awaiting dispatch
+      updated_at: new Date().toISOString()
+    }, 'order_id');
+
+    // Reduce stock
+    const allOrderItems = await orderItemsDB.findAll();
+    const orderItems = allOrderItems.filter(item => item.order_id === orderId);
+    const medicinesDB = new ExcelHandler('medicines.xlsx');
+
+    for (const item of orderItems) {
+      const medicine = medicinesDB.findById(item.medicine_id, 'medicine_id');
+      if (medicine) {
+        medicinesDB.update(
+          item.medicine_id,
+          { stock_quantity: medicine.stock_quantity - item.quantity },
+          'medicine_id'
+        );
+      }
+    }
+
+    // Log payment record
+    const paymentLog = {
+      payment_id: uuidv4(),
+      order_id: orderId,
+      user_id: order.user_id,
+      amount: order.total_amount,
+      payment_method: 'cod',
+      payment_status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    await paymentsDB.insert(paymentLog);
+
+    // Trigger WhatsApp notification and invoice generation (async, don't wait)
+    setImmediate(async () => {
+      try {
+        // Get user details
+        const user = await usersDB.findById(order.user_id, 'user_id');
+
+        // Get order items
+        const allOrderItems = await orderItemsDB.findAll();
+        const orderItems = allOrderItems.filter(item => item.order_id === orderId);
+
+        // Calculate financials
+        const financials = calculateOrderFinancials(orderItems);
+
+        // Generate invoice
+        await generateInvoice(order, orderItems, user, financials);
+
+        // Generate secure invoice link
+        const invoiceLink = secureUrlGenerator.generatePublicInvoiceLink(orderId);
+
+        // Send WhatsApp notification
+        if (user.phone) {
+          await whatsappService.sendOrderConfirmation({
+            customerName: user.name,
+            customerPhone: user.phone,
+            orderId: orderId,
+            amount: order.total_amount.toFixed(2),
+            invoiceLink: invoiceLink,
+            paymentMethod: 'COD'
+          });
+        }
+      } catch (notificationError) {
+        console.error('Post-order notification error:', notificationError);
+        // Don't fail the order if notification fails
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Order confirmed successfully. Payment will be collected on delivery.',
+      data: {
+        order_id: orderId,
+        payment_status: 'pending',
+        order_status: 'confirmed'
+      }
+    });
+
+  } catch (error) {
+    console.error('Process COD payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process order',
+      error: error.message
+    });
+  }
+};
+
+/**
  * Get all payments (Admin only)
  * GET /api/payment/all
  */

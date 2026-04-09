@@ -96,19 +96,18 @@ const QuotePayment = () => {
       if (formData.payment_method === 'cod') {
         // Process COD
         const response = await axios.post('/api/payment/process', {
-          orderId,
+          orderId: orderId,
           paymentMethod: 'cod'
         });
 
         if (response.data.success) {
-          alert('Order placed successfully with Cash on Delivery!');
+          alert(response.data.message || 'Order placed successfully with Cash on Delivery!');
           navigate('/payment-success');
         }
       } else {
         // Process online payment
         const response = await axios.post('/api/payment/create-order', {
-          orderId,
-          amount: order.total_amount
+          order_id: orderId
         });
 
         if (response.data.success) {
