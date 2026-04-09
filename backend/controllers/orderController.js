@@ -269,3 +269,60 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
+// @desc    Update order details (shipping, payment method)
+// @route   PUT /api/orders/:id/details
+// @access  Private
+exports.updateOrderDetails = async (req, res) => {
+  try {
+    const { shipping_address, billing_address, payment_method } = req.body;
+
+    const order = ordersDB.findById(req.params.id, 'order_id');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Verify ownership (unless admin)
+    if (req.user.role !== 'admin' && order.user_id !== req.user.user_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this order'
+      });
+    }
+
+    const updateData = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (shipping_address) updateData.shipping_address = shipping_address;
+    if (billing_address) updateData.billing_address = billing_address;
+    if (payment_method) updateData.payment_method = payment_method;
+
+    const success = ordersDB.update(req.params.id, updateData, 'order_id');
+
+    if (!success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update order'
+      });
+    }
+
+    const updatedOrder = ordersDB.findById(req.params.id, 'order_id');
+
+    res.status(200).json({
+      success: true,
+      message: 'Order updated successfully',
+      data: updatedOrder
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+

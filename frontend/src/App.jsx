@@ -18,6 +18,7 @@ import QuoteRequestCart from './pages/QuoteRequestCart';
 import MyQuotes from './pages/MyQuotes';
 import QuoteDetail from './pages/QuoteDetail';
 import ModifyQuote from './pages/ModifyQuote';
+import QuotePayment from './pages/QuotePayment';
 
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
@@ -107,6 +108,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Layout><ModifyQuote /></Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment/:orderId"
+              element={
+                <ProtectedRoute>
+                  <Layout><QuotePayment /></Layout>
                 </ProtectedRoute>
               }
             />

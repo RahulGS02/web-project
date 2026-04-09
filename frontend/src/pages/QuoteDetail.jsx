@@ -39,9 +39,8 @@ const QuoteDetail = () => {
     try {
       const response = await axios.post(`/api/quotes/${orderId}/accept`);
       if (response.data.success) {
-        alert(response.data.message + ' Redirecting to checkout...');
-        // Navigate to checkout page (the order is already created with accepted quote)
-        navigate('/checkout');
+        // Navigate to payment page with order ID
+        navigate(`/payment/${orderId}`);
       }
     } catch (error) {
       console.error('Accept quote error:', error);
