@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaClock, FaCheckCircle, FaEdit, FaTimesCircle, FaComments } from 'react-icons/fa';
+import NegotiationChat from '../components/NegotiationChat';
 
 const QuoteDetail = () => {
   const { orderId } = useParams();
@@ -9,6 +10,7 @@ const QuoteDetail = () => {
   const [quote, setQuote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   useEffect(() => {
     fetchQuoteDetail();
@@ -254,13 +256,36 @@ const QuoteDetail = () => {
               </button>
             </div>
             <div className="mt-4 text-center">
-              <button className="text-blue-600 hover:underline flex items-center justify-center space-x-2 mx-auto">
+              <button
+                onClick={() => setChatOpen(true)}
+                className="text-blue-600 hover:underline flex items-center justify-center space-x-2 mx-auto"
+              >
                 <FaComments />
                 <span>Send Message to Admin</span>
               </button>
             </div>
           </div>
         )}
+
+        {/* Negotiation Button for Other Statuses */}
+        {quote.quote_status !== 'QUOTE_SENT' && quote.quote_status !== 'QUOTE_REJECTED' && (
+          <div className="card p-6">
+            <button
+              onClick={() => setChatOpen(true)}
+              className="btn-secondary w-full flex items-center justify-center space-x-2"
+            >
+              <FaComments />
+              <span>Message Admin</span>
+            </button>
+          </div>
+        )}
+
+        {/* Negotiation Chat Modal */}
+        <NegotiationChat
+          orderId={orderId}
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
 
         {isExpired && quote.quote_status === 'QUOTE_SENT' && (
           <div className="card p-6 bg-red-50">

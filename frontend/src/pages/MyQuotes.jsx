@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FaClock, FaCheckCircle, FaTimesCircle, FaEdit, FaEye } from 'react-icons/fa';
+import UnreadMessagesBadge from '../components/UnreadMessagesBadge';
 
 const MyQuotes = () => {
   const [quotes, setQuotes] = useState([]);
@@ -135,8 +136,11 @@ const MyQuotes = () => {
                       Requested on {new Date(quote.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right space-y-2">
                     {getStatusBadge(quote.quote_status)}
+                    <div>
+                      <UnreadMessagesBadge orderId={quote.order_id} />
+                    </div>
                     {quote.quote_valid_until && quote.quote_status === 'QUOTE_SENT' && (
                       <p className="text-sm mt-2">
                         {calculateTimeRemaining(quote.quote_valid_until) === 'Expired' ? (
