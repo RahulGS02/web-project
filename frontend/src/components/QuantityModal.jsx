@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { FaMinus, FaPlus, FaTimes } from 'react-icons/fa';
 
+// Check if in quote mode (prices hidden)
+const QUOTE_MODE = true;
+
 const QuantityModal = ({ medicine, onConfirm, onClose }) => {
   const [quantity, setQuantity] = useState(1);
 
@@ -38,11 +41,23 @@ const QuantityModal = ({ medicine, onConfirm, onClose }) => {
           </button>
         </div>
 
-        {/* Price */}
-        <div className="mb-6">
-          <p className="text-2xl font-bold text-primary-600">Rs. {medicine.price}</p>
-          <p className="text-sm text-gray-600">Available: {medicine.stock_quantity} units</p>
-        </div>
+        {/* Price (only show if not in quote mode) */}
+        {!QUOTE_MODE && (
+          <div className="mb-6">
+            <p className="text-2xl font-bold text-primary-600">Rs. {medicine.price}</p>
+            <p className="text-sm text-gray-600">Available: {medicine.stock_quantity} units</p>
+          </div>
+        )}
+
+        {/* Quote mode info */}
+        {QUOTE_MODE && (
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>💰 Quote-Based Pricing:</strong> Add this to your cart and submit a quote request. Our team will provide the best price based on your requirements.
+            </p>
+            <p className="text-sm text-gray-600 mt-1">Available: {medicine.stock_quantity} units</p>
+          </div>
+        )}
 
         {/* Quantity Selector */}
         <div className="mb-6">
@@ -85,15 +100,17 @@ const QuantityModal = ({ medicine, onConfirm, onClose }) => {
           </div>
         </div>
 
-        {/* Total Price */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Total Price:</span>
-            <span className="text-2xl font-bold text-primary-600">
-              Rs. {(medicine.price * quantity).toFixed(2)}
-            </span>
+        {/* Total Price (only show if not in quote mode) */}
+        {!QUOTE_MODE && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Total Price:</span>
+              <span className="text-2xl font-bold text-primary-600">
+                Rs. {(medicine.price * quantity).toFixed(2)}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Prescription Warning */}
         {medicine.requires_prescription && (
@@ -116,7 +133,7 @@ const QuantityModal = ({ medicine, onConfirm, onClose }) => {
             onClick={handleConfirm}
             className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
           >
-            Add to Cart
+            {QUOTE_MODE ? 'Add to Quote Request' : 'Add to Cart'}
           </button>
         </div>
       </div>

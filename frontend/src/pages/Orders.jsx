@@ -146,39 +146,51 @@ const Orders = () => {
               </div>
             </div>
 
-            {/* Financial Breakdown */}
+            {/* Billing Summary */}
             {order.subtotal && (
-              <div className="border-t pt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal:</span>
-                  <span>₹{order.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">GST (12%):</span>
-                  <span>₹{order.gst_amount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Platform Fee:</span>
-                  <span>₹{order.platform_fee.toFixed(2)}</span>
+              <div className="border-t pt-4">
+                <h4 className="font-semibold mb-3 text-sm text-gray-700">Billing Summary</h4>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium">₹{order.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">GST (12%)</span>
+                    <span className="font-medium">₹{order.gst_amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Service Fee</span>
+                    <span className="font-medium">₹{order.platform_fee.toFixed(2)}</span>
+                  </div>
+                  {order.delivery_charges > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery Charges</span>
+                      <span className="font-medium">₹{order.delivery_charges.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 border-t border-gray-300">
+                    <span className="font-semibold text-gray-900">Total Amount</span>
+                    <span className="font-bold text-lg text-primary-600">₹{order.total_amount.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Order Total */}
-            <div className="border-t pt-4 flex justify-between items-center">
-              <div>
-                <p className="text-sm text-gray-600">Payment Method</p>
-                <p className="font-medium flex items-center">
-                  <FaCreditCard className="mr-2" />
-                  {order.payment_method?.replace('_', ' ').toUpperCase() || 'COD'}
-                </p>
-                <div className="mt-2">
+            {/* Payment Information */}
+            <div className="border-t pt-4">
+              <h4 className="font-semibold mb-3 text-sm text-gray-700">Payment Details</h4>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Payment Method</p>
+                  <p className="font-medium flex items-center text-gray-900">
+                    <FaCreditCard className="mr-2 text-primary-600" />
+                    {order.payment_method?.replace('_', ' ').toUpperCase() || 'COD'}
+                  </p>
+                </div>
+                <div>
                   {getPaymentStatusBadge(order.payment_status)}
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Total Amount</p>
-                <p className="text-2xl font-bold text-primary-600">₹{order.total_amount.toFixed(2)}</p>
               </div>
             </div>
 

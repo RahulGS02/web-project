@@ -84,29 +84,38 @@ const MyQuotes = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">My Quote Requests</h1>
-          <button
-            onClick={() => navigate('/medicines')}
-            className="btn-primary"
-          >
-            + New Quote Request
-          </button>
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-3xl font-bold">My Quotes</h1>
+            <button
+              onClick={() => navigate('/medicines')}
+              className="btn-primary"
+            >
+              + Request New Quote
+            </button>
+          </div>
+          <p className="text-gray-600">View and manage your price quotes</p>
         </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {['ALL', 'QUOTE_REQUESTED', 'QUOTE_SENT', 'QUOTE_ACCEPTED', 'NEGOTIATING'].map(status => (
+          {[
+            { value: 'ALL', label: 'All Quotes' },
+            { value: 'QUOTE_REQUESTED', label: 'Pending' },
+            { value: 'QUOTE_SENT', label: 'Received' },
+            { value: 'QUOTE_ACCEPTED', label: 'Accepted' },
+            { value: 'NEGOTIATING', label: 'Discussing' }
+          ].map(({ value, label }) => (
             <button
-              key={status}
-              onClick={() => setFilter(status)}
+              key={value}
+              onClick={() => setFilter(value)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === status
+                filter === value
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {status === 'ALL' ? 'All' : status.replace('QUOTE_', '').replace('_', ' ')}
+              {label}
             </button>
           ))}
         </div>
